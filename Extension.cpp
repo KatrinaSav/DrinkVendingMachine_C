@@ -73,7 +73,6 @@ void Storage::define_change(double amount)
 
 void Storage::add_money(double amount)
 {
-    std::cout << CoinValues::fifty_copeck / 100.;
     if (amount == BillValues::hundred)
     {
         this->bill_cells[0].add();
@@ -206,7 +205,7 @@ void DrinkVendingMachine1::show_service_screen() {}
 void DrinkVendingMachine1::on_take_change()
 {
     this->coin_receiver->storage.define_change(this->balance->deposited_money);
-    //this->balance->reset();  Ð½ÐµÐ²Ð¾Ð·Ð¼Ð¾Ð¶Ð½Ð¾ Ð²Ñ‹Ð·Ð²Ð°Ñ‚ÑŒ Ð´Ð°Ð½Ð½Ñ‹Ð¹ Ð¼ÐµÑ‚Ð¾Ð´
+    //this->balance->reset();  äàííûé ìåòîä íå ìîæåò áûòü âûçâàí
     this->balance->deposited_money = 0;
 }
 
