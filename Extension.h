@@ -19,11 +19,8 @@ class Cell
 {
 public:
     int number;
-
     Cell();
-
     void take_away();
-
     void add();
 };
 
@@ -34,13 +31,9 @@ public:
 
     Cell bill_cells[3];
     Cell coin_cells[2];
-
     Storage();
-
     void define_change(double amount);
-
     void add_money(double amount);
-
     void clear();
 
 };
