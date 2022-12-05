@@ -1,6 +1,7 @@
 #pragma once
 #include "Extension.h"
 #include <iostream>
+#include <vector>
 
 
 
@@ -20,52 +21,62 @@ void Cell::add()
 }
 
 
-
-BillCell::BillCell() {}
-
-BillCell::BillCell(BillValues value)
-{
-    this->value = value;
-}
-
-
-
-CoinCell::CoinCell() {}
-
-CoinCell::CoinCell(CoinValues value)
-{
-    this->value = value;
-}
-
-
-Storage::Storage()
-{
-    this->bill_cells[0] = BillCell(BillValues::hundred);
-    this->bill_cells[1] = BillCell(BillValues::fifty);
-    this->bill_cells[2] = BillCell(BillValues::twenty);
-    this->coin_cells[0] = CoinCell(CoinValues::fifty_copeck);
-    this->coin_cells[1] = CoinCell(CoinValues::twenty_copeck);
-}
+Storage::Storage(){}
 
 void Storage::define_change(double amount)
 {
+    amount = round(amount * 100) / 100;
     while (amount != 0)
     {
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < 5; i++)
         {
-            if (amount >= this->bill_cells[i].value && bill_cells[i].number != 0)
+            switch (i)
             {
-                amount -= bill_cells[i].value;
-                bill_cells[i].take_away();
-
+            case 0:
+            {
+                if (this->bill_cells[0].number != 0 && amount >= 100)
+                {
+                    amount -= 100;
+                    this->bill_cells[0].take_away();
+                }
+                break;
             }
-        }
-        for (int i = 0; i < 2; i++)
-        {
-            if (amount >= this->coin_cells[i].value / 100. && coin_cells[i].number != 0)
+            case 1:
             {
-                amount -= coin_cells[i].value / 100.;
-                coin_cells[i].take_away();
+                if (this->bill_cells[1].number != 0 && amount >= 50)
+                {
+                    amount -= 50;
+                    this->bill_cells[1].take_away();
+                }
+                break;
+            }
+            case 2:
+            {
+                if (this->bill_cells[2].number != 0 && amount >= 20)
+                {
+                    amount -= 20;
+                    this->bill_cells[2].take_away();
+                }
+                break;
+            }
+            case 3:
+            {
+                if (this->coin_cells[0].number != 0 && amount >= 0.5)
+                {
+                    amount -= 0.5;
+                    this->coin_cells[0].take_away();
+                }
+                break;
+            }
+            case 4:
+            {
+                if (this->coin_cells[1].number != 0 && amount >= 0.2)
+                {
+                    amount -= 0,2;
+                    this->coin_cells[1].take_away();
+                }
+                break;
+            }
             }
         }
     }
@@ -107,64 +118,50 @@ void Storage::clear()
     }
 }
 
-BillReceiver::BillReceiver() {}
-BillReceiver::BillReceiver(Storage* storage)
+NewReceiver::NewReceiver() {}
+NewReceiver::NewReceiver(Storage* storage, int* values, int number)
 {
     this->storage = storage;
+    this->list_of_values = values;
+    this->number_of_values = number;
+    
 }
-void BillReceiver::process_input(double money)
+void NewReceiver::process_input(double money)
 {
-    if (this->bill_authenticity_check())
+    if (this->authenticity_check())
     {
-        this->storage->add_money(money);
+        this->storage->add_money(this->define_value(money));
         this->machine->balance->add_money(money);
     }
     else
     {
-        this->return_bill();
+        this->return_money();
     }
 }
-double BillReceiver::define_bill_value(double money) { return money; }
-
-void BillReceiver::return_bill() {}
-bool BillReceiver::bill_authenticity_check()
+double NewReceiver::define_value(double money)
 {
-    return true;
-}
-
-
-CoinReceiver::CoinReceiver() {}
-CoinReceiver::CoinReceiver(Storage storage)
-{
-    this->storage = storage;
-}
-void CoinReceiver::process_input(double money)
-{
-    if (this->coin_authenticity_check())
+    money = round(money * 100)/ 100.;
+    for (int i = 0; i < this->number_of_values; i++)
     {
-        this->storage.add_money(money);
-        this->machine->balance->add_money(money);
+        if (this->list_of_values[i] == money)
+            return list_of_values[i];
     }
-    else
+    for (int i = 0; i < this->number_of_values; i++)
     {
-        this->return_coin();
+        if (this->list_of_values[i]/100 == money )
+            return list_of_values[i]/100;
     }
 }
-double CoinReceiver::define_coin_value(double money) { return money; }
 
-void CoinReceiver::return_coin() {}
-bool CoinReceiver::coin_authenticity_check()
+void NewReceiver::return_money() {}
+bool NewReceiver::authenticity_check()
 {
     return true;
 }
 
 
 
-Balance1::Balance1():Balance() {}
-void Balance1::reset() {}
-
-
-DrinkVendingMachine1::DrinkVendingMachine1(Balance1* balance, BillReceiver* bill_receiver, CoinReceiver* coin_receiver) : DrinkVendingMachine(balance, bill_receiver)
+DrinkVendingMachine1::DrinkVendingMachine1(Balance* balance, NewReceiver* bill_receiver, NewReceiver* coin_receiver) : DrinkVendingMachine(balance, bill_receiver)
 {
     this->coin_receiver = coin_receiver;
     this->coin_receiver->set_machine(this);
@@ -174,50 +171,77 @@ void DrinkVendingMachine1::show_main_screen()
     std::cout << "Balance :" << this->balance->deposited_money << "\n";
     double money;
     int check;
+    std::cout << "Choose number:\n1.Deposite bill\n2.Deposite coin\n3.Take change\n4.Transfer to service\n";
     std::cin >> check;
     switch (check)
     {
     case 1:
     {
-        std::cout << "Deposite money";
         std::cin >> money;
-        if (money > 2)
-        {
-            this->receiver->process_input(money);
-        }
-        else
-        {
-            this->coin_receiver->process_input(money);
-        }
+        this->receiver->process_input(money);
         break;
     }
     case 2:
     {
+        std::cin >> money;
+        this->coin_receiver->process_input(money);
+        break;
+    }
+    case 3:
+    {
         this->on_take_change();
         this->give_money();
+        break;
+    }
+    case 4:
+    {
+        this->on_transfer_to_service();
         break;
     }
     break;
     }
 
 }
-void DrinkVendingMachine1::show_service_screen() {}
+void DrinkVendingMachine1::show_service_screen() 
+{
+    std::cout << "Choose number:\n1.Take all money\n2.Complite service\n";
+    int check;
+    std::cin >> check;
+    switch (check) 
+    {
+    case 1:
+    {
+        this->on_take_all_money();
+        this->show_service_screen();
+        break;
+    }
+    case 2:
+    {
+        this->on_complite_service();
+        break;
+    }
+    }
+}
 void DrinkVendingMachine1::on_take_change()
 {
-    this->coin_receiver->storage.define_change(this->balance->deposited_money);
-    //this->balance->reset();  невозможно вызвать данный метод
+    this->coin_receiver->storage->define_change(this->balance->deposited_money);
     this->balance->deposited_money = 0;
 }
 
 void DrinkVendingMachine1::give_money() {}
-
+void DrinkVendingMachine1::on_take_all_money()
+{
+    this->coin_receiver->storage->clear();
+}
 
 DrinkVendingMachine1 Application1::build()
 {
-    Balance1 balance = Balance1();
+    Balance balance = Balance();
     Storage storage = Storage();
-    CoinReceiver coin_receiver = CoinReceiver(storage);
-    BillReceiver bill_receiver = BillReceiver(&coin_receiver.storage);
+    int coin_values[] = { CoinValues::fifty_copeck, CoinValues::twenty_copeck };
+    int bill_values[] = { BillValues::hundred, BillValues::fifty, BillValues::twenty };
+    NewReceiver coin_receiver = NewReceiver(&storage, coin_values, 2);
+    NewReceiver bill_receiver = NewReceiver(coin_receiver.storage, bill_values, 3);
     DrinkVendingMachine1 machine = DrinkVendingMachine1(&balance, &bill_receiver, &coin_receiver);
     return machine;
 

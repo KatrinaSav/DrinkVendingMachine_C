@@ -11,7 +11,10 @@ void Balance::add_money(double value)
     this->deposited_money += value;
 }
 
-void Balance::take_away(double value){}
+void Balance::take_away(double value)
+{
+    this->deposited_money -= value;
+}
 
 
 class DrinkVendingMachine;
@@ -50,8 +53,8 @@ void DrinkVendingMachine::show_main_screen()
 void DrinkVendingMachine::show_service_screen() {}
 void DrinkVendingMachine::show_ready_drink_screen() {}
 void DrinkVendingMachine::on_drink_choosen() {}
-void DrinkVendingMachine::on_transfer_to_service() {}
-void DrinkVendingMachine::on_complite_service() {}
+void DrinkVendingMachine::on_transfer_to_service() { this->show_service_screen(); }
+void DrinkVendingMachine::on_complite_service() { this->show_main_screen(); }
 
 
 
