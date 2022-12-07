@@ -159,82 +159,41 @@ bool NewReceiver::authenticity_check()
     return true;
 }
 
-
-
-DrinkVendingMachine1::DrinkVendingMachine1(Balance* balance, NewReceiver* bill_receiver, NewReceiver* coin_receiver) : DrinkVendingMachine(balance, bill_receiver)
+void PutCoinCommand::draw() const
 {
-    this->coin_receiver = coin_receiver;
-    this->coin_receiver->set_machine(this);
+    std::cout << "Deposite coin" << std::endl;
 }
-void DrinkVendingMachine1::show_main_screen()
+
+void PutCoinCommand::process() 
 {
-    std::cout << "Balance :" << this->balance->deposited_money << "\n";
     double money;
-    int check;
-    std::cout << "Choose number:\n1.Deposite bill\n2.Deposite coin\n3.Take change\n4.Transfer to service\n";
-    std::cin >> check;
-    switch (check)
-    {
-    case 1:
-    {
-        std::cin >> money;
-        this->receiver->process_input(money);
-        break;
-    }
-    case 2:
-    {
-        std::cin >> money;
-        this->coin_receiver->process_input(money);
-        break;
-    }
-    case 3:
-    {
-        this->on_take_change();
-        this->give_money();
-        break;
-    }
-    case 4:
-    {
-        this->on_transfer_to_service();
-        break;
-    }
-    break;
-    }
-
-}
-void DrinkVendingMachine1::show_service_screen() 
-{
-    std::cout << "Choose number:\n1.Take all money\n2.Complite service\n";
-    int check;
-    std::cin >> check;
-    switch (check) 
-    {
-    case 1:
-    {
-        this->on_take_all_money();
-        this->show_service_screen();
-        break;
-    }
-    case 2:
-    {
-        this->on_complite_service();
-        break;
-    }
-    }
-}
-void DrinkVendingMachine1::on_take_change()
-{
-    this->coin_receiver->storage->define_change(this->balance->deposited_money);
-    this->balance->deposited_money = 0;
+    std::cin >> money;
+    this->receiver->process_input(money);
 }
 
-void DrinkVendingMachine1::give_money() {}
-void DrinkVendingMachine1::on_take_all_money()
+void PutBillCommand::draw() const
 {
-    this->coin_receiver->storage->clear();
+    std::cout << "Deposite bill" << std::endl;
 }
 
-DrinkVendingMachine1 Application1::build()
+void PutBillCommand::process() 
+{
+    double money;
+    std::cin >> money;
+    this->receiver->process_input(money);
+}
+
+void TakeChangeCommand::draw() const
+{
+    std::cout << "Take change" << std::endl;
+}
+
+void TakeChangeCommand::process() 
+{
+    this->balance->take_all();
+}
+
+DrinkVendingMachine Application1::build()
 {
     Balance balance = Balance();
     Storage storage = Storage();
@@ -242,7 +201,13 @@ DrinkVendingMachine1 Application1::build()
     int bill_values[] = { BillValues::hundred, BillValues::fifty, BillValues::twenty };
     NewReceiver coin_receiver = NewReceiver(&storage, coin_values, 2);
     NewReceiver bill_receiver = NewReceiver(coin_receiver.storage, bill_values, 3);
-    DrinkVendingMachine1 machine = DrinkVendingMachine1(&balance, &bill_receiver, &coin_receiver);
+
+    std::vector<Command> main_commands = { 
+        PutCoinCommand(&coin_receiver), 
+        PutBillCommand(&bill_receiver),
+        TakeChangeCommand(&balance) };
+    std::vector<Command> service_commands = {};
+    DrinkVendingMachine machine = DrinkVendingMachine(main_commands, service_commands);
     return machine;
 
 }

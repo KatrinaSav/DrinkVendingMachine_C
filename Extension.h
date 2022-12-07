@@ -54,25 +54,45 @@ private:
 };
 
 
-
-
-class DrinkVendingMachine1 : public DrinkVendingMachine
+class PutCoinCommand : public Command
 {
 public:
-    NewReceiver* coin_receiver;
-    DrinkVendingMachine1(Balance* balance, NewReceiver* bill_receiver, NewReceiver* coin_receiver);
-    void show_main_screen();
-    void show_service_screen();
-    void on_take_change();
-    void give_money();
-    void on_take_all_money();
+    PutCoinCommand(Receiver* receiver) : receiver(receiver) {};
+    virtual void draw() const;
+    virtual void process();
 
+protected:
+    Receiver* receiver;    
 };
+
+
+class PutBillCommand : public Command
+{
+public:
+    PutBillCommand(Receiver* receiver) : receiver(receiver) {};
+    virtual void draw() const;
+    virtual void process();
+
+protected:
+    Receiver* receiver;
+};
+
+class TakeChangeCommand : public Command
+{
+public:
+    TakeChangeCommand(Balance* balance) : balance(balance) {};
+    virtual void draw() const;
+    virtual void process();
+
+protected:
+    Balance* balance;
+};
+
 
 class Application1 : public Application
 {
 protected:
-    DrinkVendingMachine1 build();
+    DrinkVendingMachine build();
 public:
     void main();
 };
